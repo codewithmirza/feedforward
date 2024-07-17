@@ -13,21 +13,35 @@ const Dashboard = () => {
     return (
         <div className="dashboard">
             <nav className="sidebar">
-                <ul>
-                    <li><Link to="/dashboard/profile">Profile</Link></li>
-                    <li><Link to="/dashboard/listings">Listings</Link></li>
-                    <li><Link to="/dashboard/matches">Matches</Link></li>
-                    <li><Link to="/dashboard/notifications">Notifications</Link></li>
-                    <li><Link to="/dashboard/settings">Settings</Link></li>
+                <div className="sidebar-header">
+                    <h2 className="app-title">FeedForward</h2>
+                </div>
+                <ul className="sidebar-links">
+                    <li className="sidebar-link">
+                        <Link to="/dashboard/listings">Listings</Link>
+                    </li>
+                    <li className="sidebar-link">
+                        <Link to="/dashboard/matches">Matches</Link>
+                    </li>
+                    <li className="sidebar-link">
+                        <Link to="/dashboard/profile">Profile</Link>
+                    </li>
+                    <li className="sidebar-link">
+                        <Link to="/dashboard/notifications">Notifications</Link>
+                    </li>
+                    <li className="sidebar-link">
+                        <Link to="/dashboard/settings">Settings</Link>
+                    </li>
                 </ul>
             </nav>
             <div className="content">
                 <Routes>
-                    <Route path="profile" element={<Profile />} />
-                    <Route path="listings" element={<Listings />} />
-                    <Route path="matches" element={<Matches />} />
-                    <Route path="notifications" element={<Notifications />} />
-                    <Route path="settings" element={<Settings />} />
+                    <Route path="/dashboard" element={<Listings />} /> {/* Default to Listings */}
+                    <Route path="/dashboard/listings" element={<Listings />} />
+                    <Route path="/dashboard/matches" element={<Matches />} />
+                    <Route path="/dashboard/profile" element={<Profile />} />
+                    <Route path="/dashboard/notifications" element={<Notifications />} />
+                    <Route path="/dashboard/settings" element={<Settings />} />
                 </Routes>
             </div>
         </div>
