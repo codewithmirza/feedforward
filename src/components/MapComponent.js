@@ -46,14 +46,25 @@ const SearchField = ({ onLocationSelect }) => {
 };
 
 const MapComponent = ({ location, onLocationConfirm }) => {
-  const defaultLocation = [51.505, -0.09]; // Default location (e.g., London)
-  const [position, setPosition] = useState(location ? [location.lat, location.lng] : defaultLocation);
+  const [position, setPosition] = useState([51.505, -0.09]); // Default location (e.g., London)
+  const [map, setMap] = useState(null);
 
   useEffect(() => {
-    if (location && location.lat !== undefined && location.lng !== undefined) {
-      setPosition([location.lat, location.lng]);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setPosition([latitude, longitude]);
+          if (map) {
+            map.setView([latitude, longitude], 13);
+          }
+        },
+        () => {
+          console.error('Geolocation permission denied');
+        }
+      );
     }
-  }, [location]);
+  }, [map]);
 
   const handleClick = (e) => {
     const latlng = e.latlng;
@@ -62,15 +73,31 @@ const MapComponent = ({ location, onLocationConfirm }) => {
     }
   };
 
+  const handleMapMove = () => {
+    if (map) {
+      const center = map.getCenter();
+      setPosition([center.lat, center.lng]);
+    }
+  };
+
   return (
     <div>
-      <MapContainer center={position} zoom={13} style={{ height: '400px', width: '100%' }} whenCreated={(map) => map.on('click', handleClick)}>
+      <MapContainer
+        center={position}
+        zoom={13}
+        style={{ height: '400px', width: '100%' }}
+        whenCreated={(mapInstance) => {
+          setMap(mapInstance);
+          mapInstance.on('moveend', handleMapMove);
+          mapInstance.on('click', handleClick);
+        }}
+      >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         {position && position[0] !== undefined && position[1] !== undefined && (
-          <Marker position={position} draggable={true} onDragend={(e) => setPosition(e.target.getLatLng())} />
+          <Marker position={position} />
         )}
         <SearchField onLocationSelect={(loc) => { setPosition([loc.lat, loc.lng]); }} />
       </MapContainer>
