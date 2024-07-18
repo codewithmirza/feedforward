@@ -21,7 +21,7 @@ const HomePage = () => {
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
                     console.log("Login successful", userCredential.user);
-                    navigate('/layout'); // Navigate to layout on login success
+                    navigate('/layout/listings'); // Navigate to listings on login success
                 })
                 .catch((error) => {
                     console.error("Error logging in", error);
@@ -37,7 +37,7 @@ const HomePage = () => {
                     uid: userCredential.user.uid
                 });
                 console.log("User added to Firestore");
-                navigate('/layout'); // Navigate to layout on signup success
+                navigate('/layout/listings'); // Navigate to listings on signup success
             } catch (error) {
                 console.error("Error signing up", error);
             }
