@@ -1,7 +1,7 @@
 // src/components/MapComponent.js
 
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
@@ -26,7 +26,7 @@ const SearchField = ({ onLocationSelect }) => {
       style: 'bar',
       showMarker: false,
       retainZoomLevel: false,
-      autoClose: false, // Ensure search results stay open
+      autoClose: false,
       searchLabel: 'Enter address',
       keepResult: true,
     });
@@ -46,11 +46,13 @@ const SearchField = ({ onLocationSelect }) => {
 };
 
 const MapComponent = ({ location, onLocationConfirm }) => {
-  const [position, setPosition] = useState([51.505, -0.09]); // Default location (e.g., London)
+  const [position, setPosition] = useState([51.505, -0.09]); // Default location
   const [map, setMap] = useState(null);
+  const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    if (navigator.geolocation) {
+    const storedPermission = localStorage.getItem('locationPermission');
+    if (storedPermission !== 'granted' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -58,6 +60,7 @@ const MapComponent = ({ location, onLocationConfirm }) => {
           if (map) {
             map.setView([latitude, longitude], 13);
           }
+          localStorage.setItem('locationPermission', 'granted');
         },
         () => {
           console.error('Geolocation permission denied');
@@ -66,13 +69,6 @@ const MapComponent = ({ location, onLocationConfirm }) => {
     }
   }, [map]);
 
-  const handleClick = (e) => {
-    const latlng = e.latlng;
-    if (latlng && latlng.lat !== undefined && latlng.lng !== undefined) {
-      setPosition([latlng.lat, latlng.lng]);
-    }
-  };
-
   const handleMapMove = () => {
     if (map) {
       const center = map.getCenter();
@@ -80,27 +76,49 @@ const MapComponent = ({ location, onLocationConfirm }) => {
     }
   };
 
+  const handleMapMoveStart = () => {
+    setAnimating(true);
+  };
+
+  const handleMapMoveEnd = () => {
+    setAnimating(false);
+  };
+
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <MapContainer
         center={position}
         zoom={13}
         style={{ height: '400px', width: '100%' }}
         whenCreated={(mapInstance) => {
           setMap(mapInstance);
-          mapInstance.on('moveend', handleMapMove);
-          mapInstance.on('click', handleClick);
+          mapInstance.on('move', handleMapMove);
+          mapInstance.on('movestart', handleMapMoveStart);
+          mapInstance.on('moveend', handleMapMoveEnd);
         }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {position && position[0] !== undefined && position[1] !== undefined && (
-          <Marker position={position} />
-        )}
         <SearchField onLocationSelect={(loc) => { setPosition([loc.lat, loc.lng]); }} />
       </MapContainer>
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -100%)',
+          transition: animating ? 'transform 0.3s ease-out' : 'transform 0.1s ease-in',
+          zIndex: 1000,
+        }}
+      >
+        <img
+          src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png"
+          alt="Marker"
+          style={{ width: '25px', height: '41px' }}
+        />
+      </div>
       <button onClick={() => onLocationConfirm({ lat: position[0], lng: position[1] })} style={{ marginTop: '10px', display: 'block' }}>Confirm Location</button>
     </div>
   );

@@ -131,3 +131,13 @@
   height: 400px;
   margin-top: 10px;
 }
+
+.location-picker input[type="text"] {
+  width: calc(100% - 120px); /* Adjusted width */
+  margin-right: 10px;
+}
+
+.location-picker button {
+  width: 100px; /* Adjusted width */
+  padding: 5px;
+}

@@ -41,14 +41,16 @@ const Listings = () => {
         const snapshot = await uploadBytes(imageRef, newListing.imageFile);
         imageUrl = await getDownloadURL(snapshot.ref);
       }
-      await addDoc(collection(db, 'listings'), { 
+      const listingData = { 
         ...newListing, 
         userId: user.uid, 
         expiry: moment(newListing.expiry).toISOString(),
         image: imageUrl,
         location: newListing.location, // Store the coordinates
         locationDetails: newListing.locationDetails // Store additional location details
-      });
+      };
+      delete listingData.imageFile; // Remove the imageFile before adding to Firestore
+      await addDoc(collection(db, 'listings'), listingData);
       setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '' });
       setShowForm(false);
       fetchListings();
@@ -64,13 +66,15 @@ const Listings = () => {
         const snapshot = await uploadBytes(imageRef, newListing.imageFile);
         imageUrl = await getDownloadURL(snapshot.ref);
       }
-      await updateDoc(doc(db, 'listings', editId), { 
+      const listingData = { 
         ...newListing, 
         expiry: moment(newListing.expiry).toISOString(),
         image: imageUrl,
         location: newListing.location,
         locationDetails: newListing.locationDetails
-      });
+      };
+      delete listingData.imageFile; // Remove the imageFile before updating Firestore
+      await updateDoc(doc(db, 'listings', editId), listingData);
       setEditId(null);
       setIsEditing(false);
       setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '' });
