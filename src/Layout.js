@@ -1,17 +1,12 @@
-// src/Dashboard.js
+// src/Layout.js
 
 import React from 'react';
-import { Link, Route, Routes } from 'react-router-dom';
-import './Dashboard.css';
-import Profile from './Profile';
-import Listings from './Listings';
-import Matches from './Matches';
-import Notifications from './Notifications';
-import Settings from './Settings';
+import { Link, Outlet } from 'react-router-dom';
+import './Layout.css';
 
-const Dashboard = () => {
+const Layout = () => {
     return (
-        <div className="dashboard">
+        <div className="layout">
             <nav className="sidebar">
                 <div className="sidebar-header">
                     <h2 className="app-title">FeedForward</h2>
@@ -35,17 +30,10 @@ const Dashboard = () => {
                 </ul>
             </nav>
             <div className="content">
-                <Routes>
-                    <Route path="/dashboard" element={<Listings />} /> {/* Default to Listings */}
-                    <Route path="/dashboard/listings" element={<Listings />} />
-                    <Route path="/dashboard/matches" element={<Matches />} />
-                    <Route path="/dashboard/profile" element={<Profile />} />
-                    <Route path="/dashboard/notifications" element={<Notifications />} />
-                    <Route path="/dashboard/settings" element={<Settings />} />
-                </Routes>
+                <Outlet />
             </div>
         </div>
     );
 };
 
-export default Dashboard;
+export default Layout;
