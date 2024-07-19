@@ -1,6 +1,6 @@
 // src/Listings.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from './firebaseConfig';
@@ -12,7 +12,7 @@ import MapComponent from './components/MapComponent';
 const Listings = () => {
   const [listings, setListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
-  const [newListing, setNewListing] = useState({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '' });
+  const [newListing, setNewListing] = useState({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -60,6 +60,19 @@ const Listings = () => {
     }
   };
 
+  const filterListings = useCallback(() => {
+    if (currentRole === 'donor') {
+      setFilteredListings(listings);
+    } else {
+      // Filter for recipients based on range
+      const filtered = listings.filter(listing => {
+        const distance = getDistance(location.lat, location.lng, listing.location.lat, listing.location.lng);
+        return distance <= range;
+      });
+      setFilteredListings(filtered);
+    }
+  }, [listings, range, location, currentRole]);
+
   useEffect(() => {
     const fetchUserData = async () => {
       const user = auth.currentUser;
@@ -74,30 +87,17 @@ const Listings = () => {
     };
     fetchUserData();
     requestLocationAccess();
-  }, []);
+  }, [requestLocationAccess]);
 
   useEffect(() => {
     filterListings();
-  }, [listings, range, location, currentRole]);
-
-  const filterListings = () => {
-    if (currentRole === 'donor') {
-      setFilteredListings(listings);
-    } else {
-      // Filter for recipients based on range
-      const filtered = listings.filter(listing => {
-        const distance = getDistance(location.lat, location.lng, listing.location.lat, listing.location.lng);
-        return distance <= range;
-      });
-      setFilteredListings(filtered);
-    }
-  };
+  }, [listings, range, location, currentRole, filterListings]);
 
   const getDistance = (lat1, lng1, lat2, lng2) => {
     const R = 6371; // Radius of the Earth in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const a = Math.sin(dLat / 2) * Math.sin(dLng / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
@@ -118,12 +118,13 @@ const Listings = () => {
         expiry: moment(newListing.expiry).toISOString(),
         image: imageUrl,
         location: newListing.location,
-        locationDetails: newListing.locationDetails
+        locationDetails: newListing.locationDetails,
+        phoneNumber: newListing.phoneNumber
       };
       listingData.location.address = await getAddress(newListing.location.lat, newListing.location.lng);
       delete listingData.imageFile;
       await addDoc(collection(db, 'listings'), listingData);
-      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '' });
+      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
       setShowForm(false);
       fetchListings();
     }
@@ -143,14 +144,15 @@ const Listings = () => {
         expiry: moment(newListing.expiry).toISOString(),
         image: imageUrl,
         location: newListing.location,
-        locationDetails: newListing.locationDetails
+        locationDetails: newListing.locationDetails,
+        phoneNumber: newListing.phoneNumber
       };
       listingData.location.address = await getAddress(newListing.location.lat, newListing.location.lng);
       delete listingData.imageFile;
       await updateDoc(doc(db, 'listings', editId), listingData);
       setEditId(null);
       setIsEditing(false);
-      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '' });
+      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
       fetchListings();
     }
   };
@@ -160,13 +162,29 @@ const Listings = () => {
     fetchListings();
   };
 
+  const handleRequestItem = async (listingId) => {
+    const user = auth.currentUser;
+    if (user) {
+      const requestData = {
+        listingId,
+        userId: user.uid,
+        status: 'requested',
+        timestamp: new Date().toISOString(),
+      };
+      await addDoc(collection(db, 'requests'), requestData);
+      alert('Request sent!');
+    } else {
+      alert('Please log in to request items.');
+    }
+  };
+
   const openForm = (listing = null) => {
     if (listing) {
       setNewListing(listing);
       setEditId(listing.id);
       setIsEditing(true);
     } else {
-      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '' });
+      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
       setIsEditing(false);
       setEditId(null);
     }
@@ -174,7 +192,7 @@ const Listings = () => {
   };
 
   const closeForm = () => {
-    setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '' });
+    setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
     setIsEditing(false);
     setEditId(null);
     setShowForm(false);
@@ -192,14 +210,6 @@ const Listings = () => {
     setRange(e.target.value);
   };
 
-  const toggleRole = async (e) => {
-    const newRole = e.target.value;
-    setCurrentRole(newRole);
-    if (user) {
-      await updateDoc(doc(db, 'users', user.uid), { currentRole: newRole });
-    }
-  };
-
   const handleFilter = () => {
     setLoading(true);
     setTimeout(() => {
@@ -211,14 +221,6 @@ const Listings = () => {
   return (
     <div className="listings">
       <h1>{currentRole === 'donor' ? 'Your Listings' : 'Available Items'}</h1>
-      <div className="role-toggle">
-        <span>I want to </span>
-        <select value={currentRole} onChange={toggleRole}>
-          <option value="donor">donate</option>
-          <option value="recipient">receive</option>
-        </select>
-        <span> food</span>
-      </div>
       {currentRole === 'recipient' && (
         <div className="filter-bar">
           <div className="search-location">
@@ -252,6 +254,7 @@ const Listings = () => {
                     <p>{listing.quantity}</p>
                     <p>{listing.locationDetails}</p>
                     <p>Location: {listing.location.address}</p>
+                    <p>Phone Number: {listing.phoneNumber}</p>
                     <p>Expiring in: {timeRemaining(listing.expiry)}</p>
                   </div>
                 </div>
@@ -259,6 +262,11 @@ const Listings = () => {
                   <div className="listing-actions">
                     <button onClick={() => openForm(listing)}><FaEdit /></button>
                     <button onClick={() => handleDeleteListing(listing.id)}><FaTrash /></button>
+                  </div>
+                )}
+                {currentRole === 'recipient' && (
+                  <div className="listing-actions">
+                    <button onClick={() => handleRequestItem(listing.id)}>Request Item</button>
                   </div>
                 )}
               </li>
@@ -269,7 +277,10 @@ const Listings = () => {
         </ul>
       )}
       {currentRole === 'donor' && (
-        <button className="add-button" onClick={() => openForm()}><FaPlus /></button>
+        <button className="add-button" onClick={() => openForm()}>
+          <FaPlus style={{ marginRight: '8px' }} />
+          Add Item
+        </button>
       )}
       {showForm && (
         <div className="form-overlay" onClick={(e) => { if (e.target.className === 'form-overlay') closeForm(); }}>
@@ -297,11 +308,6 @@ const Listings = () => {
               onChange={(e) => setNewListing({ ...newListing, expiry: e.target.value })}
               required
             />
-            <textarea
-              placeholder="Additional location details (optional)"
-              value={newListing.locationDetails}
-              onChange={(e) => setNewListing({ ...newListing, locationDetails: e.target.value })}
-            />
             <div className="location-picker">
               <input
                 type="text"
@@ -311,10 +317,22 @@ const Listings = () => {
               />
               <button type="button" onClick={() => setShowMap(true)}>{newListing.location ? 'Edit Location' : 'Select Location'}</button>
             </div>
+            <textarea
+              placeholder="Additional location details (optional)"
+              value={newListing.locationDetails}
+              onChange={(e) => setNewListing({ ...newListing, locationDetails: e.target.value })}
+            />
             <input
               type="file"
               placeholder="Image"
               onChange={(e) => setNewListing({ ...newListing, imageFile: e.target.files[0] })}
+            />
+            <input
+              type="text"
+              placeholder="Phone Number"
+              value={newListing.phoneNumber}
+              onChange={(e) => setNewListing({ ...newListing, phoneNumber: e.target.value })}
+              required
             />
             <button type="submit">{isEditing ? 'Update Listing' : 'Add Listing'}</button>
           </form>
