@@ -21,7 +21,6 @@ const Listings = () => {
   const [user, setUser] = useState(null);
   const [location, setLocation] = useState({ lat: null, lng: null, address: '' });
   const [range, setRange] = useState(10); // Default range in km
-  const [searchTerm, setSearchTerm] = useState('');
 
   const timeRemaining = (expiry) => {
     const duration = moment.duration(moment(expiry).diff(moment()));
@@ -78,7 +77,7 @@ const Listings = () => {
 
   useEffect(() => {
     filterListings();
-  }, [listings, searchTerm, range, location, currentRole]);
+  }, [listings, range, location, currentRole]);
 
   const filterListings = () => {
     if (currentRole === 'donor') {
@@ -87,9 +86,7 @@ const Listings = () => {
       // Filter for recipients based on range and search term
       const filtered = listings.filter(listing => {
         const distance = getDistance(location.lat, location.lng, listing.location.lat, listing.location.lng);
-        const matchesSearch = listing.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          listing.locationDetails.toLowerCase().includes(searchTerm.toLowerCase());
-        return distance <= range && matchesSearch;
+        return distance <= range;
       });
       setFilteredListings(filtered);
     }
@@ -187,10 +184,6 @@ const Listings = () => {
     }
   };
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
   const handleRangeChange = (e) => {
     setRange(e.target.value);
   };
@@ -221,17 +214,13 @@ const Listings = () => {
             <input type="text" placeholder="Your location" value={location.address} readOnly />
           </div>
           <input
-            type="text"
-            placeholder="Search items"
-            value={searchTerm}
-            onChange={handleSearchChange}
+            type="range"
+            min="1"
+            max="50"
+            value={range}
+            onChange={handleRangeChange}
           />
-          <select value={range} onChange={handleRangeChange}>
-            <option value="5">5 km</option>
-            <option value="10">10 km</option>
-            <option value="20">20 km</option>
-            <option value="50">50 km</option>
-          </select>
+          <span>{range} km</span>
         </div>
       )}
       <ul>
