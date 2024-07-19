@@ -7,9 +7,9 @@
 }
 
 .sidebar {
-    width: 200px;
+    width: 230px;
     background: linear-gradient(180deg, #4CC9F0 0%, #4361EE 100%);
-    padding: 20px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     align-items: center; /* Center items vertically */
@@ -53,7 +53,6 @@
 
 .content {
     margin-left: 200px; /* Adjust based on sidebar width */
-    padding: 20px;
     flex-grow: 1;
 }
 

@@ -11,21 +11,20 @@ const HomePage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
-    const [role, setRole] = useState('donor');
     const [isLogin, setIsLogin] = useState(true);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (isLogin) {
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    console.log("Login successful", userCredential.user);
-                    navigate('/layout/listings'); // Navigate to listings on login success
-                })
-                .catch((error) => {
-                    console.error("Error logging in", error);
-                });
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log("Login successful", userCredential.user);
+                navigate('/layout/listings'); // Navigate to listings on login success
+            } catch (error) {
+                console.error("Error logging in", error);
+                alert("Error logging in: " + error.message);
+            }
         } else {
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -33,13 +32,14 @@ const HomePage = () => {
                 await setDoc(doc(db, "users", userCredential.user.uid), {
                     name: name,
                     email: email,
-                    role: role,
+                    currentRole: 'donor', // Default role
                     uid: userCredential.user.uid
                 });
                 console.log("User added to Firestore");
                 navigate('/layout/listings'); // Navigate to listings on signup success
             } catch (error) {
                 console.error("Error signing up", error);
+                alert("Error signing up: " + error.message);
             }
         }
     };
@@ -63,20 +63,13 @@ const HomePage = () => {
                     required
                 />
                 {!isLogin && (
-                    <>
-                        <input
-                            type="text"
-                            placeholder="Name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                        <select value={role} onChange={(e) => setRole(e.target.value)}>
-                            <option value="donor">Donor</option>
-                            <option value="recipient">Recipient</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </>
+                    <input
+                        type="text"
+                        placeholder="Name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
                 )}
                 <button type="submit">{isLogin ? "Login" : "Sign Up"}</button>
             </form>
