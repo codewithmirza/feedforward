@@ -41,11 +41,16 @@
   padding-left: 5px;
 }
 
-.filter-bar input,
-.filter-bar select {
+.filter-bar input[type="range"] {
   margin: 0 5px;
   padding: 5px;
   font-size: 16px;
+}
+
+.filter-bar button {
+  padding: 5px 10px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 .toggle-role-button {
@@ -171,12 +176,34 @@
 .listing-form .close-button {
   position: absolute;
   top: 10px;
-  right: -210px;
+  right: 10px;
   background: none;
   border: none;
   font-size: 1.5em;
   cursor: pointer;
   color: #666; /* Updated color for better visibility */
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #007bff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .map-container {

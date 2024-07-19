@@ -21,6 +21,7 @@ const Listings = () => {
   const [user, setUser] = useState(null);
   const [location, setLocation] = useState({ lat: null, lng: null, address: '' });
   const [range, setRange] = useState(10); // Default range in km
+  const [loading, setLoading] = useState(false);
 
   const timeRemaining = (expiry) => {
     const duration = moment.duration(moment(expiry).diff(moment()));
@@ -83,7 +84,7 @@ const Listings = () => {
     if (currentRole === 'donor') {
       setFilteredListings(listings);
     } else {
-      // Filter for recipients based on range and search term
+      // Filter for recipients based on range
       const filtered = listings.filter(listing => {
         const distance = getDistance(location.lat, location.lng, listing.location.lat, listing.location.lng);
         return distance <= range;
@@ -119,6 +120,7 @@ const Listings = () => {
         location: newListing.location,
         locationDetails: newListing.locationDetails
       };
+      listingData.location.address = await getAddress(newListing.location.lat, newListing.location.lng);
       delete listingData.imageFile;
       await addDoc(collection(db, 'listings'), listingData);
       setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '' });
@@ -143,6 +145,7 @@ const Listings = () => {
         location: newListing.location,
         locationDetails: newListing.locationDetails
       };
+      listingData.location.address = await getAddress(newListing.location.lat, newListing.location.lng);
       delete listingData.imageFile;
       await updateDoc(doc(db, 'listings', editId), listingData);
       setEditId(null);
@@ -177,9 +180,10 @@ const Listings = () => {
     setShowForm(false);
   };
 
-  const handleLocationConfirm = (location) => {
+  const handleLocationConfirm = async (location) => {
     if (location && location.lat !== undefined && location.lng !== undefined) {
-      setNewListing({ ...newListing, location });
+      const address = await getAddress(location.lat, location.lng);
+      setNewListing({ ...newListing, location: { ...location, address } });
       setShowMap(false);
     }
   };
@@ -194,6 +198,14 @@ const Listings = () => {
     if (user) {
       await updateDoc(doc(db, 'users', user.uid), { currentRole: newRole });
     }
+  };
+
+  const handleFilter = () => {
+    setLoading(true);
+    setTimeout(() => {
+      filterListings();
+      setLoading(false);
+    }, 1000); // Simulating network request
   };
 
   return (
@@ -221,30 +233,41 @@ const Listings = () => {
             onChange={handleRangeChange}
           />
           <span>{range} km</span>
+          <button onClick={handleFilter}>Filter</button>
         </div>
       )}
-      <ul>
-        {filteredListings.map((listing) => (
-          <li key={listing.id} className="listing-item">
-            <div className="listing-details">
-              {listing.image && <img src={listing.image} alt={listing.item} className="listing-image" />}
-              <div>
-                <h2>{listing.item}</h2>
-                <p>{listing.quantity}</p>
-                <p>{listing.locationDetails}</p>
-                <p>Location: {listing.locationDetails || listing.address}</p>
-                <p>Expiring in: {timeRemaining(listing.expiry)}</p>
-              </div>
-            </div>
-            {currentRole === 'donor' && (
-              <div className="listing-actions">
-                <button onClick={() => openForm(listing)}><FaEdit /></button>
-                <button onClick={() => handleDeleteListing(listing.id)}><FaTrash /></button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+      {loading ? (
+        <div className="loading">
+          <div className="spinner"></div>
+        </div>
+      ) : (
+        <ul>
+          {filteredListings.length > 0 ? (
+            filteredListings.map((listing) => (
+              <li key={listing.id} className="listing-item">
+                <div className="listing-details">
+                  {listing.image && <img src={listing.image} alt={listing.item} className="listing-image" />}
+                  <div>
+                    <h2>{listing.item}</h2>
+                    <p>{listing.quantity}</p>
+                    <p>{listing.locationDetails}</p>
+                    <p>Location: {listing.location.address}</p>
+                    <p>Expiring in: {timeRemaining(listing.expiry)}</p>
+                  </div>
+                </div>
+                {currentRole === 'donor' && (
+                  <div className="listing-actions">
+                    <button onClick={() => openForm(listing)}><FaEdit /></button>
+                    <button onClick={() => handleDeleteListing(listing.id)}><FaTrash /></button>
+                  </div>
+                )}
+              </li>
+            ))
+          ) : (
+            <p>No items available currently</p>
+          )}
+        </ul>
+      )}
       {currentRole === 'donor' && (
         <button className="add-button" onClick={() => openForm()}><FaPlus /></button>
       )}
@@ -283,7 +306,7 @@ const Listings = () => {
               <input
                 type="text"
                 placeholder="Location"
-                value={newListing.location ? `Lat: ${newListing.location.lat}, Lng: ${newListing.location.lng}` : ''}
+                value={newListing.location ? newListing.location.address : ''}
                 readOnly
               />
               <button type="button" onClick={() => setShowMap(true)}>{newListing.location ? 'Edit Location' : 'Select Location'}</button>
