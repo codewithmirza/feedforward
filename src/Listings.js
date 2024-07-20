@@ -3,11 +3,11 @@ import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc, g
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from './firebaseConfig';
 import moment from 'moment';
-import { FaEdit, FaTrash, FaTimes, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaTimes, FaMapMarkerAlt, FaPlus } from 'react-icons/fa';
 import './Listings.css';
 import MapComponent from './components/MapComponent';
 
-const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole as a prop
+const Listings = ({ currentRole, setCurrentRole }) => {
   const [listings, setListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
   const [newListing, setNewListing] = useState({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
@@ -16,6 +16,8 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
   const [showForm, setShowForm] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [location, setLocation] = useState({ lat: null, lng: null, address: '' });
+  const [locationInput, setLocationInput] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [range, setRange] = useState(10); // Default range in km
   const [loading, setLoading] = useState(false);
 
@@ -34,6 +36,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
           const { latitude, longitude } = position.coords;
           const address = await getAddress(latitude, longitude);
           setLocation({ lat: latitude, lng: longitude, address });
+          setLocationInput(address); // Set the location input to the user's current location
         },
         (error) => {
           console.error('Error fetching location', error);
@@ -41,7 +44,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
         }
       );
     }
-  }, []);  // Add empty dependency array to memoize the function
+  }, []);
 
   const getAddress = async (lat, lng) => {
     try {
@@ -57,13 +60,10 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
 
   const fetchListings = async () => {
     try {
-      const user = auth.currentUser;
-      if (user) {
-        const listingsQuery = query(collection(db, 'listings'), where('userId', '==', user.uid));
-        const listingsSnapshot = await getDocs(listingsQuery);
-        const listingsData = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setListings(listingsData);
-      }
+      const listingsQuery = query(collection(db, 'listings'));
+      const listingsSnapshot = await getDocs(listingsQuery);
+      const listingsData = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setListings(listingsData);
     } catch (error) {
       console.error('Failed to fetch listings:', error);
     }
@@ -71,7 +71,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
 
   const filterListings = useCallback(() => {
     if (currentRole === 'donor') {
-      setFilteredListings(listings);
+      setFilteredListings(listings.filter(listing => listing.userId === auth.currentUser.uid));
     } else {
       const filtered = listings.filter(listing => {
         if (!listing.location || !location.lat || !location.lng) return false;
@@ -87,7 +87,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
       try {
         const user = auth.currentUser;
         if (user) {
-          fetchListings();
+          await fetchListings();
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
             setCurrentRole(userDoc.data().currentRole);
@@ -99,11 +99,11 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
     };
     fetchUserData();
     requestLocationAccess();
-  }, [setCurrentRole, requestLocationAccess]);  // Add setCurrentRole and requestLocationAccess to the dependency array
+  }, [setCurrentRole, requestLocationAccess]);
 
   useEffect(() => {
     filterListings();
-  }, [listings, range, location, currentRole, filterListings]);
+  }, [listings, range, location, filterListings]);
 
   const getDistance = (lat1, lng1, lat2, lng2) => {
     const R = 6371; // Radius of the Earth in km
@@ -242,13 +242,56 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
     setTimeout(() => {
       filterListings();
       setLoading(false);
-    }, 1000); // Simulating network request
+    }, 1000);
   };
 
   const resetForm = () => {
     setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
     setIsEditing(false);
     setEditId(null);
+  };
+
+  const handleLocationInputChange = async (e) => {
+    const input = e.target.value;
+    setLocationInput(input);
+    if (input.length > 2) {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${input}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        setLocationSuggestions(data);
+      } catch (error) {
+        console.error('Failed to fetch location suggestions:', error);
+      }
+    } else {
+      setLocationSuggestions([]);
+    }
+  };
+
+  const handleLocationSelect = (suggestion) => {
+    const { lat, lon, display_name } = suggestion;
+    setLocation({ lat: parseFloat(lat), lng: parseFloat(lon), address: display_name });
+    setLocationInput(display_name);
+    setLocationSuggestions([]);
+  };
+
+  const handleLocationSearch = async () => {
+    if (locationInput) {
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${locationInput}`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        if (data.length > 0) {
+          const { lat, lon } = data[0];
+          const address = data[0].display_name;
+          setLocation({ lat: parseFloat(lat), lng: parseFloat(lon), address });
+        } else {
+          alert('Location not found.');
+        }
+      } catch (error) {
+        console.error('Failed to search location:', error);
+      }
+    }
   };
 
   return (
@@ -258,16 +301,31 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
         <div className="filter-bar">
           <div className="search-location">
             <FaMapMarkerAlt />
-            <input type="text" placeholder="Your location" value={location.address} readOnly />
+            <input 
+              type="text" 
+              placeholder="Enter location" 
+              value={locationInput} 
+              onChange={handleLocationInputChange} 
+            />
+            <button onClick={handleLocationSearch}>Search</button>
+            {locationSuggestions.length > 0 && (
+              <ul className="location-suggestions">
+                {locationSuggestions.map((suggestion, index) => (
+                  <li key={index} onClick={() => handleLocationSelect(suggestion)}>
+                    {suggestion.display_name}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <input
-            type="range"
-            min="1"
-            max="50"
+            type="number"
+            placeholder="Enter range in km"
             value={range}
             onChange={handleRangeChange}
+            min="1"
+            max="6371"
           />
-          <span>{range} km</span>
           <button onClick={handleFilter}>Filter</button>
         </div>
       )}
@@ -311,6 +369,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole a
       )}
       {currentRole === 'donor' && (
         <button className="add-button" onClick={() => openForm()}>
+          <FaPlus style={{ marginRight: '8px' }} />
           Add Item
         </button>
       )}
