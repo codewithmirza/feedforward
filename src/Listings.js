@@ -1,15 +1,13 @@
-// src/Listings.js
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from './firebaseConfig';
 import moment from 'moment';
-import { FaPlus, FaEdit, FaTrash, FaTimes, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaTimes, FaMapMarkerAlt } from 'react-icons/fa';
 import './Listings.css';
 import MapComponent from './components/MapComponent';
 
-const Listings = () => {
+const Listings = ({ currentRole, setCurrentRole }) => {  // Add setCurrentRole as a prop
   const [listings, setListings] = useState([]);
   const [filteredListings, setFilteredListings] = useState([]);
   const [newListing, setNewListing] = useState({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
@@ -17,8 +15,6 @@ const Listings = () => {
   const [editId, setEditId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  const [currentRole, setCurrentRole] = useState('donor');
-  const [user, setUser] = useState(null);
   const [location, setLocation] = useState({ lat: null, lng: null, address: '' });
   const [range, setRange] = useState(10); // Default range in km
   const [loading, setLoading] = useState(false);
@@ -31,7 +27,7 @@ const Listings = () => {
     return `${Math.floor(duration.asMinutes())} minutes`;
   };
 
-  const requestLocationAccess = () => {
+  const requestLocationAccess = useCallback(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -39,24 +35,37 @@ const Listings = () => {
           const address = await getAddress(latitude, longitude);
           setLocation({ lat: latitude, lng: longitude, address });
         },
-        (error) => console.error('Error fetching location', error)
+        (error) => {
+          console.error('Error fetching location', error);
+          setLocation({ lat: null, lng: null, address: 'Location access denied' });
+        }
       );
+    }
+  }, []);  // Add empty dependency array to memoize the function
+
+  const getAddress = async (lat, lng) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      return data.display_name;
+    } catch (error) {
+      console.error('Failed to fetch address:', error);
+      return 'Failed to fetch address';
     }
   };
 
-  const getAddress = async (lat, lng) => {
-    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
-    const data = await response.json();
-    return data.display_name;
-  };
-
   const fetchListings = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      const listingsQuery = query(collection(db, 'listings'), where('userId', '==', user.uid));
-      const listingsSnapshot = await getDocs(listingsQuery);
-      const listingsData = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setListings(listingsData);
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const listingsQuery = query(collection(db, 'listings'), where('userId', '==', user.uid));
+        const listingsSnapshot = await getDocs(listingsQuery);
+        const listingsData = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setListings(listingsData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch listings:', error);
     }
   };
 
@@ -64,8 +73,8 @@ const Listings = () => {
     if (currentRole === 'donor') {
       setFilteredListings(listings);
     } else {
-      // Filter for recipients based on range
       const filtered = listings.filter(listing => {
+        if (!listing.location || !location.lat || !location.lng) return false;
         const distance = getDistance(location.lat, location.lng, listing.location.lat, listing.location.lng);
         return distance <= range;
       });
@@ -75,19 +84,22 @@ const Listings = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        setUser(user);
-        fetchListings();
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setCurrentRole(userDoc.data().currentRole);
+      try {
+        const user = auth.currentUser;
+        if (user) {
+          fetchListings();
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setCurrentRole(userDoc.data().currentRole);
+          }
         }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
       }
     };
     fetchUserData();
     requestLocationAccess();
-  }, [requestLocationAccess]);
+  }, [setCurrentRole, requestLocationAccess]);  // Add setCurrentRole and requestLocationAccess to the dependency array
 
   useEffect(() => {
     filterListings();
@@ -104,77 +116,92 @@ const Listings = () => {
 
   const handleAddListing = async (e) => {
     e.preventDefault();
-    const user = auth.currentUser;
-    if (user) {
-      let imageUrl = '';
-      if (newListing.imageFile) {
-        const imageRef = ref(storage, `images/${new Date().getTime()}-${newListing.imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, newListing.imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        let imageUrl = '';
+        if (newListing.imageFile) {
+          const imageRef = ref(storage, `images/${new Date().getTime()}-${newListing.imageFile.name}`);
+          const snapshot = await uploadBytes(imageRef, newListing.imageFile);
+          imageUrl = await getDownloadURL(snapshot.ref);
+        }
+        const listingData = {
+          ...newListing,
+          userId: user.uid,
+          expiry: moment(newListing.expiry).toISOString(),
+          image: imageUrl,
+          location: newListing.location,
+          locationDetails: newListing.locationDetails,
+          phoneNumber: newListing.phoneNumber,
+        };
+        listingData.location.address = await getAddress(newListing.location.lat, newListing.location.lng);
+        delete listingData.imageFile;
+        await addDoc(collection(db, 'listings'), listingData);
+        resetForm();
+        fetchListings();
       }
-      const listingData = {
-        ...newListing,
-        userId: user.uid,
-        expiry: moment(newListing.expiry).toISOString(),
-        image: imageUrl,
-        location: newListing.location,
-        locationDetails: newListing.locationDetails,
-        phoneNumber: newListing.phoneNumber
-      };
-      listingData.location.address = await getAddress(newListing.location.lat, newListing.location.lng);
-      delete listingData.imageFile;
-      await addDoc(collection(db, 'listings'), listingData);
-      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
-      setShowForm(false);
-      fetchListings();
+    } catch (error) {
+      console.error('Failed to add listing:', error);
     }
   };
 
   const handleEditListing = async (e) => {
     e.preventDefault();
-    if (editId) {
-      let imageUrl = newListing.image;
-      if (newListing.imageFile) {
-        const imageRef = ref(storage, `images/${new Date().getTime()}-${newListing.imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, newListing.imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
+    try {
+      if (editId) {
+        let imageUrl = newListing.image;
+        if (newListing.imageFile) {
+          const imageRef = ref(storage, `images/${new Date().getTime()}-${newListing.imageFile.name}`);
+          const snapshot = await uploadBytes(imageRef, newListing.imageFile);
+          imageUrl = await getDownloadURL(snapshot.ref);
+        }
+        const listingData = {
+          ...newListing,
+          expiry: moment(newListing.expiry).toISOString(),
+          image: imageUrl,
+          location: newListing.location,
+          locationDetails: newListing.locationDetails,
+          phoneNumber: newListing.phoneNumber,
+        };
+        listingData.location.address = await getAddress(newListing.location.lat, newListing.location.lng);
+        delete listingData.imageFile;
+        await updateDoc(doc(db, 'listings', editId), listingData);
+        setEditId(null);
+        setIsEditing(false);
+        resetForm();
+        fetchListings();
       }
-      const listingData = {
-        ...newListing,
-        expiry: moment(newListing.expiry).toISOString(),
-        image: imageUrl,
-        location: newListing.location,
-        locationDetails: newListing.locationDetails,
-        phoneNumber: newListing.phoneNumber
-      };
-      listingData.location.address = await getAddress(newListing.location.lat, newListing.location.lng);
-      delete listingData.imageFile;
-      await updateDoc(doc(db, 'listings', editId), listingData);
-      setEditId(null);
-      setIsEditing(false);
-      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
-      fetchListings();
+    } catch (error) {
+      console.error('Failed to edit listing:', error);
     }
   };
 
   const handleDeleteListing = async (id) => {
-    await deleteDoc(doc(db, 'listings', id));
-    fetchListings();
+    try {
+      await deleteDoc(doc(db, 'listings', id));
+      fetchListings();
+    } catch (error) {
+      console.error('Failed to delete listing:', error);
+    }
   };
 
   const handleRequestItem = async (listingId) => {
-    const user = auth.currentUser;
-    if (user) {
-      const requestData = {
-        listingId,
-        userId: user.uid,
-        status: 'requested',
-        timestamp: new Date().toISOString(),
-      };
-      await addDoc(collection(db, 'requests'), requestData);
-      alert('Request sent!');
-    } else {
-      alert('Please log in to request items.');
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        const requestData = {
+          listingId,
+          userId: user.uid,
+          status: 'requested',
+          timestamp: new Date().toISOString(),
+        };
+        await addDoc(collection(db, 'requests'), requestData);
+        alert('Request sent!');
+      } else {
+        alert('Please log in to request items.');
+      }
+    } catch (error) {
+      console.error('Failed to request item:', error);
     }
   };
 
@@ -184,25 +211,25 @@ const Listings = () => {
       setEditId(listing.id);
       setIsEditing(true);
     } else {
-      setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
-      setIsEditing(false);
-      setEditId(null);
+      resetForm();
     }
     setShowForm(true);
   };
 
   const closeForm = () => {
-    setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
-    setIsEditing(false);
-    setEditId(null);
+    resetForm();
     setShowForm(false);
   };
 
   const handleLocationConfirm = async (location) => {
-    if (location && location.lat !== undefined && location.lng !== undefined) {
-      const address = await getAddress(location.lat, location.lng);
-      setNewListing({ ...newListing, location: { ...location, address } });
-      setShowMap(false);
+    try {
+      if (location && location.lat !== undefined && location.lng !== undefined) {
+        const address = await getAddress(location.lat, location.lng);
+        setNewListing({ ...newListing, location: { ...location, address } });
+        setShowMap(false);
+      }
+    } catch (error) {
+      console.error('Failed to confirm location:', error);
     }
   };
 
@@ -216,6 +243,12 @@ const Listings = () => {
       filterListings();
       setLoading(false);
     }, 1000); // Simulating network request
+  };
+
+  const resetForm = () => {
+    setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
+    setIsEditing(false);
+    setEditId(null);
   };
 
   return (
@@ -278,7 +311,6 @@ const Listings = () => {
       )}
       {currentRole === 'donor' && (
         <button className="add-button" onClick={() => openForm()}>
-          <FaPlus style={{ marginRight: '8px' }} />
           Add Item
         </button>
       )}

@@ -2,111 +2,7 @@
 
 .layout {
     display: flex;
-    flex-direction: row; /* Adjust to row for desktop view */
-    height: 100vh;
-}
-
-.sidebar {
-    width: 230px;
-    background: linear-gradient(180deg, #4CC9F0 0%, #4361EE 100%);
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center items vertically */
-    position: fixed; /* Fix sidebar */
-    top: 0;
-    bottom: 0; /* Extend to bottom of viewport */
-    left: 0;
-}
-
-.sidebar-header {
-    margin-bottom: 20px;
-}
-
-.app-title {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.sidebar-links {
-    list-style-type: none;
-    padding: 0;
-    width: 100%; /* Full width for links */
-}
-
-.sidebar-link {
-    margin: 10px 0;
-    padding: 10px 16px;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
-}
-
-.sidebar-link a {
-    text-decoration: none;
-    color: #333;
-    display: block;
-}
-
-.sidebar-link.active {
-    background-color: #e0e0e0; /* Light grey */
-}
-
-.content {
-    margin-left: 200px; /* Adjust based on sidebar width */
-    flex-grow: 1;
-}
-
-.sidebar-link:hover {
-    background-color: #e0e0e0; /* Light grey on hover */
-}
-
-.action-button {
-    background-color: #1E90FF; /* Your brand color */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.action-button:hover {
-    background-color: #0066CC; /* Darker shade on hover */
-}
-
-.action-button:active {
-    transform: scale(0.95); /* Subtle click animation */
-}
-
-/* src/Layout.css */
-
-/* Existing styles */
-
-.role-toggle {
-    margin-top: 20px;
-    text-align: center;
-  }
-  
-  .toggle-select {
-    padding: 8px 16px;
-    border: 2px solid #007bff;
-    border-radius: 20px;
-    background-color: #f1f1f1;
-    font-size: 16px;
-    color: #007bff;
-    cursor: pointer;
-    outline: none;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  
-  .toggle-select:focus {
-    background-color: #007bff;
-    color: #ffffff;
-  }
-  
-  .layout {
-    display: flex;
-    flex-direction: row; /* Adjust to row for desktop view */
+    flex-direction: row;
     height: 100vh;
   }
   
@@ -116,10 +12,10 @@
     padding: 10px;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center items vertically */
-    position: fixed; /* Fix sidebar */
+    align-items: center;
+    position: fixed;
     top: 0;
-    bottom: 0; /* Extend to bottom of viewport */
+    bottom: 0;
     left: 0;
   }
   
@@ -135,7 +31,7 @@
   .sidebar-links {
     list-style-type: none;
     padding: 0;
-    width: 100%; /* Full width for links */
+    width: 100%;
   }
   
   .sidebar-link {
@@ -152,34 +48,38 @@
   }
   
   .sidebar-link.active {
-    background-color: #e0e0e0; /* Light grey */
+    background-color: #e0e0e0;
   }
   
   .content {
-    margin-left: 230px; /* Adjust based on sidebar width */
+    margin-left: 230px;
     flex-grow: 1;
-    padding: 20px; /* Add padding for content */
+    padding: 20px;
   }
   
   .sidebar-link:hover {
-    background-color: #e0e0e0; /* Light grey on hover */
+    background-color: #e0e0e0;
   }
   
-  .action-button {
-    background-color: #1E90FF; /* Your brand color */
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
+  .role-toggle {
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .toggle-button {
+    padding: 8px 16px;
+    border: 2px solid #007bff;
+    border-radius: 20px;
+    background-color: #f1f1f1;
+    font-size: 16px;
+    color: #007bff;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    outline: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
-  .action-button:hover {
-    background-color: #0066CC; /* Darker shade on hover */
-  }
-  
-  .action-button:active {
-    transform: scale(0.95); /* Subtle click animation */
+  .toggle-button:hover {
+    background-color: #007bff;
+    color: #ffffff;
   }
   

@@ -2,4 +2,38 @@
 
 .matches {
     padding: 20px;
-}
+  }
+  
+  .matches h1 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .request-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .request-item.accepted {
+    background-color: #d4edda;
+  }
+  
+  .request-item.rejected {
+    background-color: #f8d7da;
+  }
+  
+  .actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-left: 10px;
+  }
+  

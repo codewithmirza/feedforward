@@ -1,11 +1,11 @@
-// src/Layout.js
-
 import React, { useEffect, useState } from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, useLocation, Route, Routes } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from './firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import './Layout.css';
+import Listings from './Listings';
+import Matches from './Matches';
 
 const Layout = () => {
   const location = useLocation();
@@ -16,20 +16,33 @@ const Layout = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setCurrentRole(userDoc.data().currentRole);
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setCurrentRole(userDoc.data().currentRole);
+          } else {
+            console.error('User document does not exist');
+          }
+        } catch (error) {
+          console.error('Failed to fetch user role:', error);
         }
       }
     };
+
     fetchUserRole();
   }, [user]);
 
-  const toggleRole = async (e) => {
-    const newRole = e.target.value;
-    setCurrentRole(newRole);
+  const toggleRole = async () => {
     if (user) {
-      await updateDoc(doc(db, 'users', user.uid), { currentRole: newRole });
+      const newRole = currentRole === 'donor' ? 'recipient' : 'donor';
+      setCurrentRole(newRole);
+      try {
+        await updateDoc(doc(db, 'users', user.uid), { currentRole: newRole });
+        console.log('User role updated to', newRole);
+      } catch (error) {
+        console.error('Failed to update user role:', error);
+        alert('Failed to update user role. Please try again later.');
+      }
     }
   };
 
@@ -57,14 +70,17 @@ const Layout = () => {
           </li>
         </ul>
         <div className="role-toggle">
-          <select value={currentRole} onChange={toggleRole} className="toggle-select">
-            <option value="donor">Donor</option>
-            <option value="recipient">Recipient</option>
-          </select>
+          <button onClick={toggleRole} className="toggle-button">
+            {currentRole === 'donor' ? 'Switch to Recipient' : 'Switch to Donor'}
+          </button>
         </div>
       </nav>
       <div className="content">
-        <Outlet />
+        <Routes>
+          <Route path="listings" element={<Listings currentRole={currentRole} setCurrentRole={setCurrentRole} />} />
+          <Route path="matches" element={<Matches />} />
+          {/* Add other routes as necessary */}
+        </Routes>
       </div>
     </div>
   );
