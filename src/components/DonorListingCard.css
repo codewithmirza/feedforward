@@ -1,0 +1,38 @@
+.donor-listing-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .listing-details {
+    display: flex;
+    align-items: center;
+  }
+  
+  .listing-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-right: 20px;
+    border-radius: 8px;
+  }
+  
+  .listing-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    margin-left: 10px;
+    transition: color 0.3s ease;
+  }
+  
+  .listing-actions button:hover {
+    color: #007bff;
+  }
+  

@@ -1,39 +1,60 @@
-/* src/Matches.css */
-
 .matches {
-    padding: 20px;
-  }
-  
-  .matches h1 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .request-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .request-item.accepted {
-    background-color: #d4edda;
-  }
-  
-  .request-item.rejected {
-    background-color: #f8d7da;
-  }
-  
-  .actions button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2em;
-    margin-left: 10px;
-  }
-  
+  padding: 20px;
+}
+
+.matches h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.request-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.request-item.accepted {
+  background-color: #d4edda;
+}
+
+.request-item.rejected {
+  background-color: #f8d7da;
+}
+
+.actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  margin-left: 10px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.actions button:hover {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.actions button:first-child {
+  background-color: #28a745;
+}
+
+.actions button:first-child:hover {
+  background-color: #218838;
+}
+
+.actions button:last-child {
+  background-color: #dc3545;
+}
+
+.actions button:last-child:hover {
+  background-color: #c82333;
+}

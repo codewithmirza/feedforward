@@ -1,7 +1,6 @@
 // src/Matches.js
-
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from './firebaseConfig';
 import './Matches.css';
 
@@ -11,26 +10,50 @@ const Matches = () => {
 
   useEffect(() => {
     const fetchRequests = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        setUser(user);
-        const requestsQuery = query(collection(db, 'requests'), where('userId', '==', user.uid));
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        setUser(currentUser);
+        const requestsQuery = query(collection(db, 'requests'), where('userId', '==', currentUser.uid));
         const requestsSnapshot = await getDocs(requestsQuery);
-        const requestsData = requestsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const requestsData = await Promise.all(requestsSnapshot.docs.map(async doc => {
+          const listingDoc = await getDoc(doc(db, 'listings', doc.data().listingId));
+          return { id: doc.id, ...doc.data(), item: listingDoc.data().item };
+        }));
         setRequests(requestsData);
       }
     };
+
     fetchRequests();
   }, []);
 
   const handleAcceptRequest = async (requestId) => {
     await updateDoc(doc(db, 'requests', requestId), { status: 'accepted' });
     setRequests(requests.map(req => req.id === requestId ? { ...req, status: 'accepted' } : req));
+    
+    // Send notification to the recipient
+    const requestDoc = await getDoc(doc(db, 'requests', requestId));
+    const recipientId = requestDoc.data().userId;
+    const notificationData = {
+      userId: recipientId,
+      message: `Your request for item: ${requestDoc.data().item} has been accepted.`,
+      timestamp: new Date().toISOString(),
+    };
+    await addDoc(collection(db, 'notifications'), notificationData);
   };
 
   const handleRejectRequest = async (requestId) => {
     await updateDoc(doc(db, 'requests', requestId), { status: 'rejected' });
     setRequests(requests.map(req => req.id === requestId ? { ...req, status: 'rejected' } : req));
+    
+    // Send notification to the recipient
+    const requestDoc = await getDoc(doc(db, 'requests', requestId));
+    const recipientId = requestDoc.data().userId;
+    const notificationData = {
+      userId: recipientId,
+      message: `Your request for item: ${requestDoc.data().item} has been rejected.`,
+      timestamp: new Date().toISOString(),
+    };
+    await addDoc(collection(db, 'notifications'), notificationData);
   };
 
   return (
@@ -39,7 +62,7 @@ const Matches = () => {
       <ul>
         {requests.map(request => (
           <li key={request.id} className={`request-item ${request.status}`}>
-            <p>Request for item ID: {request.listingId}</p>
+            <p>Request for item: {request.item}</p>
             <p>Status: {request.status}</p>
             {request.status === 'requested' && (
               <div className="actions">

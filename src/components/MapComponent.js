@@ -1,5 +1,3 @@
-// src/components/MapComponent.js
-
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -46,27 +44,29 @@ const SearchField = ({ onLocationSelect }) => {
 };
 
 const MapComponent = ({ location, onLocationConfirm }) => {
-  const [position, setPosition] = useState([51.505, -0.09]); // Default location
+  const [position, setPosition] = useState([51.505, -0.09]); // Default location (London)
   const [map, setMap] = useState(null);
   const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
-    const storedPermission = localStorage.getItem('locationPermission');
-    if (storedPermission !== 'granted' && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setPosition([latitude, longitude]);
-          if (map) {
-            map.setView([latitude, longitude], 13);
+    const setUserLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            setPosition([latitude, longitude]);
+            if (map) {
+              map.setView([latitude, longitude], 13);
+            }
+          },
+          (error) => {
+            console.error('Error fetching location', error);
           }
-          localStorage.setItem('locationPermission', 'granted');
-        },
-        () => {
-          console.error('Geolocation permission denied');
-        }
-      );
-    }
+        );
+      }
+    };
+
+    setUserLocation();
   }, [map]);
 
   const handleMapMove = () => {
@@ -82,6 +82,23 @@ const MapComponent = ({ location, onLocationConfirm }) => {
 
   const handleMapMoveEnd = () => {
     setAnimating(false);
+  };
+
+  const getAddress = async (lat, lng) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      return data.display_name;
+    } catch (error) {
+      console.error('Failed to fetch address:', error);
+      return 'Failed to fetch address';
+    }
+  };
+
+  const confirmLocation = async () => {
+    const address = await getAddress(position[0], position[1]);
+    onLocationConfirm({ lat: position[0], lng: position[1], address });
   };
 
   return (
@@ -119,7 +136,7 @@ const MapComponent = ({ location, onLocationConfirm }) => {
           style={{ width: '25px', height: '41px' }}
         />
       </div>
-      <button onClick={() => onLocationConfirm({ lat: position[0], lng: position[1] })} style={{ marginTop: '10px', display: 'block' }}>Confirm Location</button>
+      <button onClick={confirmLocation} style={{ marginTop: '10px', display: 'block' }}>Confirm Location</button>
     </div>
   );
 };

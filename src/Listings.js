@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, query, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, auth, storage } from './firebaseConfig';
 import moment from 'moment';
-import { FaEdit, FaTrash, FaTimes, FaMapMarkerAlt, FaPlus } from 'react-icons/fa';
+import { FaTimes, FaMapMarkerAlt, FaPlus } from 'react-icons/fa';
 import './Listings.css';
 import MapComponent from './components/MapComponent';
+import DonorListingCard from './components/DonorListingCard';
+import RecipientListingCard from './components/RecipientListingCard';
 
 const Listings = ({ currentRole, setCurrentRole }) => {
   const [listings, setListings] = useState([]);
@@ -21,6 +23,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
   const [range, setRange] = useState(10); // Default range in km
   const [loading, setLoading] = useState(false);
 
+  // Function to calculate the time remaining until expiry
   const timeRemaining = (expiry) => {
     const duration = moment.duration(moment(expiry).diff(moment()));
     if (duration.asWeeks() >= 1) return `${Math.floor(duration.asWeeks())} weeks`;
@@ -29,6 +32,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     return `${Math.floor(duration.asMinutes())} minutes`;
   };
 
+  // Requesting user's location
   const requestLocationAccess = useCallback(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -46,6 +50,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     }
   }, []);
 
+  // Function to get the address from latitude and longitude
   const getAddress = async (lat, lng) => {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
@@ -58,30 +63,40 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     }
   };
 
+  // Fetching listings from Firestore
   const fetchListings = async () => {
     try {
+      console.log("Fetching listings...");
       const listingsQuery = query(collection(db, 'listings'));
       const listingsSnapshot = await getDocs(listingsQuery);
       const listingsData = listingsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log("Listings fetched:", listingsData);
       setListings(listingsData);
     } catch (error) {
       console.error('Failed to fetch listings:', error);
     }
   };
 
+  // Filtering listings based on the user's role
   const filterListings = useCallback(() => {
+    console.log("Filtering listings for role:", currentRole);
     if (currentRole === 'donor') {
-      setFilteredListings(listings.filter(listing => listing.userId === auth.currentUser.uid));
+      const donorListings = listings.filter(listing => listing.userId === auth.currentUser.uid);
+      console.log("Donor listings:", donorListings);
+      setFilteredListings(donorListings);
     } else {
       const filtered = listings.filter(listing => {
         if (!listing.location || !location.lat || !location.lng) return false;
         const distance = getDistance(location.lat, location.lng, listing.location.lat, listing.location.lng);
+        console.log(`Distance to listing ${listing.id} (${listing.item}):`, distance);
         return distance <= range;
       });
+      console.log("Filtered listings for recipient:", filtered);
       setFilteredListings(filtered);
     }
   }, [listings, range, location, currentRole]);
 
+  // Initial fetch and set up
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -90,6 +105,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
           await fetchListings();
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
+            console.log("User data fetched:", userDoc.data());
             setCurrentRole(userDoc.data().currentRole);
           }
         }
@@ -101,10 +117,12 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     requestLocationAccess();
   }, [setCurrentRole, requestLocationAccess]);
 
+  // Apply filtering whenever listings, range, or location change
   useEffect(() => {
     filterListings();
   }, [listings, range, location, filterListings]);
 
+  // Function to calculate the distance between two points
   const getDistance = (lat1, lng1, lat2, lng2) => {
     const R = 6371; // Radius of the Earth in km
     const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -114,6 +132,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     return R * c;
   };
 
+  // Handle adding a new listing
   const handleAddListing = async (e) => {
     e.preventDefault();
     try {
@@ -139,12 +158,14 @@ const Listings = ({ currentRole, setCurrentRole }) => {
         await addDoc(collection(db, 'listings'), listingData);
         resetForm();
         fetchListings();
+        setShowForm(false); // Close the form after adding listing
       }
     } catch (error) {
       console.error('Failed to add listing:', error);
     }
   };
 
+  // Handle editing an existing listing
   const handleEditListing = async (e) => {
     e.preventDefault();
     try {
@@ -170,12 +191,14 @@ const Listings = ({ currentRole, setCurrentRole }) => {
         setIsEditing(false);
         resetForm();
         fetchListings();
+        setShowForm(false); // Close the form after editing listing
       }
     } catch (error) {
       console.error('Failed to edit listing:', error);
     }
   };
 
+  // Handle deleting a listing
   const handleDeleteListing = async (id) => {
     try {
       await deleteDoc(doc(db, 'listings', id));
@@ -185,17 +208,24 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     }
   };
 
-  const handleRequestItem = async (listingId) => {
+  // Handle requesting an item
+  const handleRequestItem = async (listingId, donorId) => {
     try {
       const user = auth.currentUser;
       if (user) {
         const requestData = {
           listingId,
           userId: user.uid,
+          donorId,
           status: 'requested',
           timestamp: new Date().toISOString(),
         };
         await addDoc(collection(db, 'requests'), requestData);
+        await addDoc(collection(db, 'notifications'), {
+          userId: donorId,
+          message: `You have a new request for item: ${newListing.item}`,
+          timestamp: new Date().toISOString(),
+        });
         alert('Request sent!');
       } else {
         alert('Please log in to request items.');
@@ -205,6 +235,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     }
   };
 
+  // Open the form for adding or editing a listing
   const openForm = (listing = null) => {
     if (listing) {
       setNewListing(listing);
@@ -216,16 +247,19 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     setShowForm(true);
   };
 
+  // Close the form
   const closeForm = () => {
     resetForm();
     setShowForm(false);
   };
 
+  // Confirm location selection
   const handleLocationConfirm = async (location) => {
     try {
       if (location && location.lat !== undefined && location.lng !== undefined) {
         const address = await getAddress(location.lat, location.lng);
         setNewListing({ ...newListing, location: { ...location, address } });
+        setLocationInput(address); // Update the location input field with the address
         setShowMap(false);
       }
     } catch (error) {
@@ -233,10 +267,12 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     }
   };
 
+  // Handle range change for filtering
   const handleRangeChange = (e) => {
     setRange(e.target.value);
   };
 
+  // Apply filtering with loading state
   const handleFilter = () => {
     setLoading(true);
     setTimeout(() => {
@@ -245,12 +281,14 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     }, 1000);
   };
 
+  // Reset form state
   const resetForm = () => {
     setNewListing({ item: '', quantity: '', expiry: '', location: null, imageFile: null, locationDetails: '', phoneNumber: '' });
     setIsEditing(false);
     setEditId(null);
   };
 
+  // Handle location input change and fetch suggestions
   const handleLocationInputChange = async (e) => {
     const input = e.target.value;
     setLocationInput(input);
@@ -268,6 +306,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     }
   };
 
+  // Handle location selection from suggestions
   const handleLocationSelect = (suggestion) => {
     const { lat, lon, display_name } = suggestion;
     setLocation({ lat: parseFloat(lat), lng: parseFloat(lon), address: display_name });
@@ -275,6 +314,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
     setLocationSuggestions([]);
   };
 
+  // Handle location search
   const handleLocationSearch = async () => {
     if (locationInput) {
       try {
@@ -306,6 +346,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
               placeholder="Enter location" 
               value={locationInput} 
               onChange={handleLocationInputChange} 
+              style={{ width: '300px' }} // Increase the width of the location input field
             />
             <button onClick={handleLocationSearch}>Search</button>
             {locationSuggestions.length > 0 && (
@@ -337,30 +378,11 @@ const Listings = ({ currentRole, setCurrentRole }) => {
         <ul>
           {filteredListings.length > 0 ? (
             filteredListings.map((listing) => (
-              <li key={listing.id} className="listing-item">
-                <div className="listing-details">
-                  {listing.image && <img src={listing.image} alt={listing.item} className="listing-image" />}
-                  <div>
-                    <h2>{listing.item}</h2>
-                    <p>{listing.quantity}</p>
-                    <p>{listing.locationDetails}</p>
-                    <p>Location: {listing.location.address}</p>
-                    <p>Phone Number: {listing.phoneNumber}</p>
-                    <p>Expiring in: {timeRemaining(listing.expiry)}</p>
-                  </div>
-                </div>
-                {currentRole === 'donor' && (
-                  <div className="listing-actions">
-                    <button onClick={() => openForm(listing)}><FaEdit /></button>
-                    <button onClick={() => handleDeleteListing(listing.id)}><FaTrash /></button>
-                  </div>
-                )}
-                {currentRole === 'recipient' && (
-                  <div className="listing-actions">
-                    <button onClick={() => handleRequestItem(listing.id)}>Request Item</button>
-                  </div>
-                )}
-              </li>
+              currentRole === 'donor' ? (
+                <DonorListingCard key={listing.id} listing={listing} onEdit={openForm} onDelete={handleDeleteListing} />
+              ) : (
+                <RecipientListingCard key={listing.id} listing={listing} onRequest={handleRequestItem} />
+              )
             ))
           ) : (
             <p>No items available currently</p>
@@ -405,6 +427,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
                 placeholder="Location"
                 value={newListing.location ? newListing.location.address : ''}
                 readOnly
+                style={{ width: '300px' }} // Increase the width of the location input field
               />
               <button type="button" onClick={() => setShowMap(true)}>{newListing.location ? 'Edit Location' : 'Select Location'}</button>
             </div>
@@ -427,7 +450,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
             />
             <button type="submit">{isEditing ? 'Update Listing' : 'Add Listing'}</button>
           </form>
-          {showMap && <div className="map-container" onClick={(e) => e.stopPropagation()}><MapComponent location={newListing.location} onLocationConfirm={handleLocationConfirm} /></div>}
+          {showMap && <div className="map-container" onClick={(e) => e.stopPropagation()}><MapComponent location={location} onLocationConfirm={handleLocationConfirm} /></div>}
         </div>
       )}
     </div>

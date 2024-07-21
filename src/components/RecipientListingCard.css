@@ -1,0 +1,48 @@
+.recipient-listing-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .listing-details {
+    display: flex;
+    align-items: center;
+  }
+  
+  .listing-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    margin-right: 20px;
+    border-radius: 8px;
+  }
+  
+  .listing-actions button {
+    background: #007bff;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 8px 16px;
+    color: white;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .listing-actions button:hover {
+    background-color: #0056b3;
+  }
+  
+  .listing-actions button.request-sent {
+    background-color: #28a745;
+  }
+  
+  .listing-actions button.request-sent:hover {
+    background-color: #218838;
+  }
+  

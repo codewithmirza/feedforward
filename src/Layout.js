@@ -6,6 +6,8 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import './Layout.css';
 import Listings from './Listings';
 import Matches from './Matches';
+import Notifications from './Notifications';
+import ProfilePage from './Profile';
 
 const Layout = () => {
   const location = useLocation();
@@ -59,11 +61,11 @@ const Layout = () => {
           <li className={`sidebar-link ${activeLink === 'matches' ? 'active' : ''}`}>
             <Link to="/layout/matches">Matches</Link>
           </li>
-          <li className={`sidebar-link ${activeLink === 'profile' ? 'active' : ''}`}>
-            <Link to="/layout/profile">Profile</Link>
-          </li>
           <li className={`sidebar-link ${activeLink === 'notifications' ? 'active' : ''}`}>
             <Link to="/layout/notifications">Notifications</Link>
+          </li>
+          <li className={`sidebar-link ${activeLink === 'profile' ? 'active' : ''}`}>
+            <Link to="/layout/profile">Profile</Link>
           </li>
           <li className={`sidebar-link ${activeLink === 'settings' ? 'active' : ''}`}>
             <Link to="/layout/settings">Settings</Link>
@@ -79,7 +81,8 @@ const Layout = () => {
         <Routes>
           <Route path="listings" element={<Listings currentRole={currentRole} setCurrentRole={setCurrentRole} />} />
           <Route path="matches" element={<Matches />} />
-          {/* Add other routes as necessary */}
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Routes>
       </div>
     </div>
