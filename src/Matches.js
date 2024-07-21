@@ -12,16 +12,39 @@ const Matches = () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
         setUser(currentUser);
+
         // Fetch requests where the current user is either the requester or the donor
-        const requestsQuery = query(collection(db, 'requests'), where('donorId', '==', currentUser.uid));
+        const requestsQuery = query(
+          collection(db, 'requests'),
+          where('userId', '==', currentUser.uid)
+        );
+        const donorRequestsQuery = query(
+          collection(db, 'requests'),
+          where('donorId', '==', currentUser.uid)
+        );
+
         const requestsSnapshot = await getDocs(requestsQuery);
-        const requestsData = await Promise.all(requestsSnapshot.docs.map(async (docSnap) => {
-          const requestData = docSnap.data();
-          const listingDoc = await getDoc(doc(db, 'listings', requestData.listingId));
-          const listingData = listingDoc.exists() ? listingDoc.data() : {};
-          return { id: docSnap.id, ...requestData, item: listingData.item };
-        }));
-        setRequests(requestsData);
+        const donorRequestsSnapshot = await getDocs(donorRequestsQuery);
+
+        const requestsData = await Promise.all(
+          requestsSnapshot.docs.map(async (docSnap) => {
+            const requestData = docSnap.data();
+            const listingDoc = await getDoc(doc(db, 'listings', requestData.listingId));
+            const listingData = listingDoc.exists() ? listingDoc.data() : {};
+            return { id: docSnap.id, ...requestData, item: listingData.item, userRole: 'requester' };
+          })
+        );
+
+        const donorRequestsData = await Promise.all(
+          donorRequestsSnapshot.docs.map(async (docSnap) => {
+            const requestData = docSnap.data();
+            const listingDoc = await getDoc(doc(db, 'listings', requestData.listingId));
+            const listingData = listingDoc.exists() ? listingDoc.data() : {};
+            return { id: docSnap.id, ...requestData, item: listingData.item, userRole: 'donor' };
+          })
+        );
+
+        setRequests([...requestsData, ...donorRequestsData]);
       }
     };
 
@@ -68,7 +91,7 @@ const Matches = () => {
           <li key={request.id} className={`request-item ${request.status}`}>
             <p>Request for item: {request.item}</p>
             <p>Status: {request.status}</p>
-            {request.status === 'requested' && (
+            {request.status === 'requested' && request.userRole === 'donor' && (
               <div className="actions">
                 <button onClick={() => handleAcceptRequest(request.id)}>Accept</button>
                 <button onClick={() => handleRejectRequest(request.id)}>Reject</button>
