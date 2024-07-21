@@ -1,4 +1,3 @@
-// src/Matches.js
 import React, { useEffect, useState } from 'react';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc } from 'firebase/firestore';
 import { db, auth } from './firebaseConfig';
@@ -13,11 +12,14 @@ const Matches = () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
         setUser(currentUser);
-        const requestsQuery = query(collection(db, 'requests'), where('userId', '==', currentUser.uid));
+        // Fetch requests where the current user is either the requester or the donor
+        const requestsQuery = query(collection(db, 'requests'), where('donorId', '==', currentUser.uid));
         const requestsSnapshot = await getDocs(requestsQuery);
-        const requestsData = await Promise.all(requestsSnapshot.docs.map(async doc => {
-          const listingDoc = await getDoc(doc(db, 'listings', doc.data().listingId));
-          return { id: doc.id, ...doc.data(), item: listingDoc.data().item };
+        const requestsData = await Promise.all(requestsSnapshot.docs.map(async (docSnap) => {
+          const requestData = docSnap.data();
+          const listingDoc = await getDoc(doc(db, 'listings', requestData.listingId));
+          const listingData = listingDoc.exists() ? listingDoc.data() : {};
+          return { id: docSnap.id, ...requestData, item: listingData.item };
         }));
         setRequests(requestsData);
       }
@@ -32,10 +34,11 @@ const Matches = () => {
     
     // Send notification to the recipient
     const requestDoc = await getDoc(doc(db, 'requests', requestId));
-    const recipientId = requestDoc.data().userId;
+    const requestData = requestDoc.data();
+    const recipientId = requestData.userId;
     const notificationData = {
       userId: recipientId,
-      message: `Your request for item: ${requestDoc.data().item} has been accepted.`,
+      message: `Your request for item: ${requestData.item} has been accepted.`,
       timestamp: new Date().toISOString(),
     };
     await addDoc(collection(db, 'notifications'), notificationData);
@@ -47,10 +50,11 @@ const Matches = () => {
     
     // Send notification to the recipient
     const requestDoc = await getDoc(doc(db, 'requests', requestId));
-    const recipientId = requestDoc.data().userId;
+    const requestData = requestDoc.data();
+    const recipientId = requestData.userId;
     const notificationData = {
       userId: recipientId,
-      message: `Your request for item: ${requestDoc.data().item} has been rejected.`,
+      message: `Your request for item: ${requestData.item} has been rejected.`,
       timestamp: new Date().toISOString(),
     };
     await addDoc(collection(db, 'notifications'), notificationData);

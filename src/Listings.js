@@ -86,6 +86,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
       setFilteredListings(donorListings);
     } else {
       const filtered = listings.filter(listing => {
+        if (listing.userId === auth.currentUser.uid) return false; // Exclude listings by the current user
         if (!listing.location || !location.lat || !location.lng) return false;
         const distance = getDistance(location.lat, location.lng, listing.location.lat, listing.location.lng);
         console.log(`Distance to listing ${listing.id} (${listing.item}):`, distance);
