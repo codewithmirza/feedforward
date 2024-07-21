@@ -1,11 +1,27 @@
+/* Matches.css */
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
 .matches {
   padding: 20px;
+  max-width: 900px;
+  margin: 40px auto;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .matches h1 {
   text-align: center;
   margin-bottom: 20px;
-  color: #2c3e50;
+  font-size: 28px;
+  color: #007bff;
 }
 
 .request-item {
@@ -37,6 +53,7 @@
   padding: 8px 16px;
   border-radius: 4px;
   transition: background-color 0.3s ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .actions button:hover {
@@ -46,6 +63,8 @@
 
 .actions button:first-child {
   background-color: #28a745;
+  color: white;
+  border: none;
 }
 
 .actions button:first-child:hover {
@@ -54,6 +73,8 @@
 
 .actions button:last-child {
   background-color: #dc3545;
+  color: white;
+  border: none;
 }
 
 .actions button:last-child:hover {

@@ -341,7 +341,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
       {currentRole === 'recipient' && (
         <div className="filter-bar">
           <div className="search-location">
-            <FaMapMarkerAlt style={{ marginRight: '10px', marginBottom:'10px'}}/>
+            <FaMapMarkerAlt style={{ marginRight: '10px', marginBottom: '10px' }} />
             <input 
               type="text" 
               placeholder="Enter location" 

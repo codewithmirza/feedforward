@@ -78,7 +78,7 @@ body {
 .content {
   margin-left: 250px;
   flex-grow: 1;
-  padding: 40px;
+  padding: 20px;
   background: #fff;
   overflow-y: auto;
 }

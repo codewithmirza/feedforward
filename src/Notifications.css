@@ -1,11 +1,27 @@
+/* Notifications.css */
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
 .notifications {
   padding: 20px;
+  max-width: 900px;
+  margin: 40px auto;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .notifications h1 {
   text-align: center;
   margin-bottom: 20px;
-  color: #2c3e50;
+  font-size: 28px;
+  color: #007bff;
 }
 
 .notification-item {
@@ -19,6 +35,8 @@
 
 .notification-item p {
   margin: 0;
+  font-size: 18px;
+  color: #555;
 }
 
 .notification-item small {
