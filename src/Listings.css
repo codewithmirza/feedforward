@@ -1,6 +1,8 @@
 /* General Layout */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   background-color: #f4f4f9;
   margin: 0;
   padding: 0;
@@ -40,10 +42,11 @@ footer p {
 
 button {
   font-size: 1em;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font-weight: 500;
 }
 
 button:hover {
@@ -74,9 +77,10 @@ button:hover {
 input, select, textarea {
   width: 100%;
   padding: 10px;
-  margin: 5px 0 20px 0;
+  margin: 10px 0 20px 0;
   border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 16px;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -93,6 +97,9 @@ input:focus, select:focus, textarea:focus {
 .listings h1 {
   text-align: center;
   margin-bottom: 20px;
+  font-size: 28px;
+  font-weight: 700;
+  color: #007bff;
 }
 
 .filter-bar {
@@ -114,13 +121,13 @@ input:focus, select:focus, textarea:focus {
 .search-location input {
   border: 1px solid #ddd;
   background: #fff;
-  padding: 5px 10px;
+  padding: 10px 15px;
   border-radius: 4px;
   font-size: 16px;
 }
 
 .search-location button {
-  padding: 5px 10px;
+  padding: 10px 15px;
   font-size: 16px;
   cursor: pointer;
   background-color: #007bff;
@@ -164,14 +171,14 @@ input:focus, select:focus, textarea:focus {
 .filter-bar input[type="number"] {
   border: 1px solid #ddd;
   background: #fff;
-  padding: 5px 10px;
+  padding: 10px 15px;
   border-radius: 4px;
   font-size: 16px;
-  width: 120px;
+  width: 150px;
 }
 
 .filter-bar button {
-  padding: 5px 10px;
+  padding: 10px 15px;
   font-size: 16px;
   cursor: pointer;
   background-color: #007bff;
@@ -191,8 +198,8 @@ input:focus, select:focus, textarea:focus {
   justify-content: space-between;
   align-items: center;
   border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
   border-radius: 8px;
   background-color: #f9f9f9;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -264,31 +271,34 @@ input:focus, select:focus, textarea:focus {
 
 .listing-form {
   background: #fff;
-  padding: 20px;
+  padding: 30px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
   width: 90%;
-  max-width: 500px;
+  max-width: 600px;
 }
 
 .listing-form h2 {
   margin-bottom: 20px;
+  font-size: 24px;
+  color: #007bff;
 }
 
 .listing-form input,
 .listing-form textarea {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 12px;
+  margin-bottom: 15px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 16px;
 }
 
 .listing-form .location-picker {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .listing-form .location-picker input {
@@ -297,7 +307,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .listing-form .location-picker button {
-  padding: 5px 10px;
+  padding: 10px 15px;
   background-color: #007bff;
   color: #fff;
   border: none;
@@ -312,7 +322,7 @@ input:focus, select:focus, textarea:focus {
 
 .listing-form button {
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   background-color: #007bff;
   color: #fff;
   border: none;
@@ -372,8 +382,8 @@ input:focus, select:focus, textarea:focus {
   justify-content: space-between;
   align-items: center;
   border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
   border-radius: 8px;
   background-color: #f9f9f9;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -427,8 +437,8 @@ input:focus, select:focus, textarea:focus {
   justify-content: space-between;
   align-items: center;
   border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
   border-radius: 8px;
   background-color: #f9f9f9;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -452,7 +462,7 @@ input:focus, select:focus, textarea:focus {
   border: none;
   cursor: pointer;
   font-size: 1em;
-  padding: 8px 16px;
+  padding: 10px 20px;
   color: white;
   border-radius: 4px;
   transition: background-color 0.3s ease;
