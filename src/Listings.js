@@ -26,10 +26,13 @@ const Listings = ({ currentRole, setCurrentRole }) => {
   // Function to calculate the time remaining until expiry
   const timeRemaining = (expiry) => {
     const duration = moment.duration(moment(expiry).diff(moment()));
-    if (duration.asWeeks() >= 1) return `${Math.floor(duration.asWeeks())} weeks`;
-    if (duration.asDays() >= 1) return `${Math.floor(duration.asDays())} days`;
-    if (duration.asHours() >= 1) return `${Math.floor(duration.asHours())} hours`;
-    return `${Math.floor(duration.asMinutes())} minutes`;
+    const months = Math.floor(duration.asMonths());
+    const weeks = Math.floor(duration.asWeeks()) % 4;
+    const days = Math.floor(duration.asDays()) % 7;
+    const hours = Math.floor(duration.asHours()) % 24;
+    const minutes = Math.floor(duration.asMinutes()) % 60;
+
+    return `${months ? months + ' months ' : ''}${weeks ? weeks + ' weeks ' : ''}${days ? days + ' days ' : ''}${hours ? hours + ' hours ' : ''}${minutes ? minutes + ' minutes' : ''}`.trim();
   };
 
   // Requesting user's location
@@ -349,6 +352,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
               onChange={handleLocationInputChange} 
               style={{ width: '300px' }} // Increase the width of the location input field
             />
+            <button onClick={handleLocationSearch}>Search</button>
             {locationSuggestions.length > 0 && (
               <ul className="location-suggestions">
                 {locationSuggestions.map((suggestion, index) => (
@@ -381,7 +385,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
               currentRole === 'donor' ? (
                 <DonorListingCard key={listing.id} listing={listing} onEdit={openForm} onDelete={handleDeleteListing} />
               ) : (
-                <RecipientListingCard key={listing.id} listing={listing} onRequest={handleRequestItem} />
+                <RecipientListingCard key={listing.id} listing={listing} onRequest={handleRequestItem} timeRemaining={timeRemaining(listing.expiry)} />
               )
             ))
           ) : (
