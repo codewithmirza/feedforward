@@ -36,3 +36,19 @@
     color: #007bff;
   }
   
+  .listing-actions button:first-child {
+    color: #ffc107;
+  }
+  
+  .listing-actions button:first-child:hover {
+    color: #e0a800;
+  }
+  
+  .listing-actions button:last-child {
+    color: #dc3545;
+  }
+  
+  .listing-actions button:last-child:hover {
+    color: #c82333;
+  }
+  

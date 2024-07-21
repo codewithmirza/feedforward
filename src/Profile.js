@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from './firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { FaEdit } from 'react-icons/fa';
+import { MdAddAPhoto } from 'react-icons/md';
 import './Profile.css';
 
 const ProfilePage = () => {
@@ -30,6 +31,13 @@ const ProfilePage = () => {
     setEditData({ ...editData, [e.target.name]: e.target.value });
   };
 
+  const handleProfilePictureChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setEditData({ ...editData, profilePicture: URL.createObjectURL(file) });
+    }
+  };
+
   const handleSaveChanges = async () => {
     try {
       const docRef = doc(db, 'users', user.uid);
@@ -47,60 +55,47 @@ const ProfilePage = () => {
     <div className="profile-page">
       <div className="profile-header">
         <h1>Profile Page</h1>
-        <button onClick={() => setIsEditing(true)}><FaEdit /> Edit</button>
+        <button onClick={() => setIsEditing(true)}>
+          <FaEdit /> Edit
+        </button>
       </div>
       <div className="profile-details">
+        <div className="profile-picture">
+          <img src={userData.profilePicture || 'default.jpg'} alt="Profile" />
+        </div>
         <p><strong>Full Name:</strong> {userData.name}</p>
         <p><strong>Email:</strong> {userData.email}</p>
         <p><strong>Phone Number:</strong> {userData.phoneNumber || 'N/A'}</p>
         <p><strong>Role:</strong> {userData.currentRole}</p>
-        {userData.currentRole === 'donor' && (
-          <>
-            <p><strong>Organization Name:</strong> {userData.organizationName || 'N/A'}</p>
-            <p><strong>Address:</strong> {userData.address || 'N/A'}</p>
-            <p><strong>Type of Food Provided:</strong> {userData.foodType || 'N/A'}</p>
-            <p><strong>Quantity and Frequency:</strong> {userData.quantityFrequency || 'N/A'}</p>
-            <p><strong>Preferred Pickup Times:</strong> {userData.pickupTimes || 'N/A'}</p>
-          </>
-        )}
-        {userData.currentRole === 'recipient' && (
-          <>
-            <p><strong>Organization Name:</strong> {userData.organizationName || 'N/A'}</p>
-            <p><strong>Address:</strong> {userData.address || 'N/A'}</p>
-            <p><strong>Type of Food Needed:</strong> {userData.foodNeeded || 'N/A'}</p>
-            <p><strong>Storage Capacity:</strong> {userData.storageCapacity || 'N/A'}</p>
-            <p><strong>Preferred Pickup/Delivery Times:</strong> {userData.pickupDeliveryTimes || 'N/A'}</p>
-          </>
-        )}
-        <p><strong>Profile Picture:</strong> <img src={userData.profilePicture || 'default.jpg'} alt="Profile" /></p>
+        <p><strong>Organization Name:</strong> {userData.organizationName || 'N/A'}</p>
+        <p><strong>Address:</strong> {userData.address || 'N/A'}</p>
         <p><strong>Brief Description:</strong> {userData.description || 'N/A'}</p>
       </div>
 
       {isEditing && (
         <div className="edit-profile-modal">
           <h2>Edit Profile</h2>
+          <div className="profile-picture-edit">
+            <label htmlFor="profilePictureInput">
+              <MdAddAPhoto />
+              <img src={editData.profilePicture || 'default.jpg'} alt="Profile" />
+            </label>
+            <input 
+              id="profilePictureInput" 
+              type="file" 
+              onChange={handleProfilePictureChange} 
+              style={{ display: 'none' }} 
+            />
+          </div>
           <input type="text" name="name" value={editData.name} onChange={handleEditChange} placeholder="Full Name" />
           <input type="email" name="email" value={editData.email} onChange={handleEditChange} placeholder="Email" disabled />
           <input type="text" name="phoneNumber" value={editData.phoneNumber} onChange={handleEditChange} placeholder="Phone Number" />
-          {userData.currentRole === 'donor' && (
-            <>
-              <input type="text" name="organizationName" value={editData.organizationName} onChange={handleEditChange} placeholder="Organization Name" />
-              <input type="text" name="address" value={editData.address} onChange={handleEditChange} placeholder="Address" />
-              <input type="text" name="foodType" value={editData.foodType} onChange={handleEditChange} placeholder="Type of Food Provided" />
-              <input type="text" name="quantityFrequency" value={editData.quantityFrequency} onChange={handleEditChange} placeholder="Quantity and Frequency" />
-              <input type="text" name="pickupTimes" value={editData.pickupTimes} onChange={handleEditChange} placeholder="Preferred Pickup Times" />
-            </>
-          )}
-          {userData.currentRole === 'recipient' && (
-            <>
-              <input type="text" name="organizationName" value={editData.organizationName} onChange={handleEditChange} placeholder="Organization Name" />
-              <input type="text" name="address" value={editData.address} onChange={handleEditChange} placeholder="Address" />
-              <input type="text" name="foodNeeded" value={editData.foodNeeded} onChange={handleEditChange} placeholder="Type of Food Needed" />
-              <input type="text" name="storageCapacity" value={editData.storageCapacity} onChange={handleEditChange} placeholder="Storage Capacity" />
-              <input type="text" name="pickupDeliveryTimes" value={editData.pickupDeliveryTimes} onChange={handleEditChange} placeholder="Preferred Pickup/Delivery Times" />
-            </>
-          )}
-          <input type="file" name="profilePicture" onChange={(e) => setEditData({ ...editData, profilePicture: URL.createObjectURL(e.target.files[0]) })} placeholder="Profile Picture" />
+          <select name="currentRole" value={editData.currentRole} onChange={handleEditChange}>
+            <option value="donor">Donor</option>
+            <option value="recipient">Recipient</option>
+          </select>
+          <input type="text" name="organizationName" value={editData.organizationName} onChange={handleEditChange} placeholder="Organization Name" />
+          <input type="text" name="address" value={editData.address} onChange={handleEditChange} placeholder="Address" />
           <textarea name="description" value={editData.description} onChange={handleEditChange} placeholder="Brief Description"></textarea>
           <button onClick={handleSaveChanges}>Save Changes</button>
           <button className="cancel-button" onClick={() => setIsEditing(false)}>Cancel</button>

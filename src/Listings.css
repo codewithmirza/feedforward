@@ -1,5 +1,91 @@
-/* src/Listings.css */
+/* General Layout */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
 
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 0;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2em;
+}
+
+footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  margin-top: 20px;
+}
+
+footer p {
+  margin: 0;
+}
+
+button {
+  font-size: 1em;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+  color: white;
+}
+
+.button-primary {
+  background-color: #007bff;
+  color: white;
+  border: none;
+}
+
+.button-primary:hover {
+  background-color: #0056b3;
+}
+
+.button-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+}
+
+.button-secondary:hover {
+  background-color: #5a6268;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0 20px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Listings Page */
 .listings {
   padding: 20px;
 }
@@ -99,6 +185,7 @@
   background-color: #0056b3;
 }
 
+/* Listing Item Styles */
 .listing-item {
   display: flex;
   justify-content: space-between;
@@ -161,6 +248,7 @@
   background-color: #0056b3;
 }
 
+/* Form Overlay */
 .form-overlay {
   position: fixed;
   top: 0;
@@ -178,7 +266,7 @@
   background: #fff;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
   width: 90%;
   max-width: 500px;
@@ -233,21 +321,22 @@
   transition: background-color 0.3s ease;
 }
 
-/* .listing-form button:hover {
+.listing-form button:hover {
   background-color: #0056b3;
-} */
+}
 
 .listing-form .close-button {
   position: absolute;
   top: 10px;
-  right: -210px;
+  right: 10px;
   background: none;
   border: none;
   font-size: 1.5em;
   cursor: pointer;
-  color: #666; 
+  color: #666;
 }
 
+/* Loading Spinner */
 .loading {
   display: flex;
   justify-content: center;
@@ -270,8 +359,113 @@
   }
 }
 
+/* Map Container */
 .map-container {
   width: 100%;
   height: 400px;
   margin-top: 10px;
+}
+
+/* Donor Listing Card */
+.donor-listing-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.donor-listing-item .listing-details {
+  display: flex;
+  align-items: center;
+}
+
+.donor-listing-item .listing-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 20px;
+  border-radius: 8px;
+}
+
+.donor-listing-item .listing-actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  margin-left: 10px;
+  transition: color 0.3s ease;
+}
+
+.donor-listing-item .listing-actions button:hover {
+  color: #007bff;
+}
+
+.donor-listing-item .listing-actions button:first-child {
+  color: #ffc107;
+}
+
+.donor-listing-item .listing-actions button:first-child:hover {
+  color: #e0a800;
+}
+
+.donor-listing-item .listing-actions button:last-child {
+  color: #dc3545;
+}
+
+.donor-listing-item .listing-actions button:last-child:hover {
+  color: #c82333;
+}
+
+/* Recipient Listing Card */
+.recipient-listing-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.recipient-listing-item .listing-details {
+  display: flex;
+  align-items: center;
+}
+
+.recipient-listing-item .listing-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 20px;
+  border-radius: 8px;
+}
+
+.recipient-listing-item .listing-actions button {
+  background: #007bff;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 8px 16px;
+  color: white;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.recipient-listing-item .listing-actions button:hover {
+  background-color: #0056b3;
+}
+
+.recipient-listing-item .listing-actions button.request-sent {
+  background-color: #28a745;
+}
+
+.recipient-listing-item .listing-actions button.request-sent:hover {
+  background-color: #218838;
 }
