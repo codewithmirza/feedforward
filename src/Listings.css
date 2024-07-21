@@ -186,7 +186,7 @@ input:focus, select:focus, textarea:focus {
   background-color: #0056b3;
 }
 
-/* Listing Item Styles */
+/* Listing Item Styles
 .listing-item {
   display: flex;
   justify-content: space-between;
@@ -223,7 +223,7 @@ input:focus, select:focus, textarea:focus {
 
 .listing-actions button:hover {
   color: #007bff;
-}
+} */
 
 .add-button {
   position: fixed;
@@ -263,6 +263,7 @@ input:focus, select:focus, textarea:focus {
   z-index: 1000;
 }
 
+/* Listing Form Styles */
 .listing-form {
   background: #fff;
   padding: 30px;
@@ -271,6 +272,7 @@ input:focus, select:focus, textarea:focus {
   position: relative;
   width: 90%;
   max-width: 600px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .listing-form h2 {
@@ -287,6 +289,7 @@ input:focus, select:focus, textarea:focus {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 16px;
+  font-family: 'Poppins', sans-serif;
 }
 
 .listing-form .location-picker {
@@ -344,6 +347,7 @@ input:focus, select:focus, textarea:focus {
 .listing-form .close-button:hover {
   color: #333;
 }
+
 
 /* Loading Spinner */
 .loading {
