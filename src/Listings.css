@@ -1,8 +1,9 @@
 /* General Layout */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
 
 body {
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Poppins', sans-serif;
   background-color: #f4f4f9;
   margin: 0;
   padding: 0;
@@ -94,12 +95,13 @@ input:focus, select:focus, textarea:focus {
   padding: 20px;
 }
 
-.listings h1 {
+.listings-title {
   text-align: center;
   margin-bottom: 20px;
   font-size: 28px;
   font-weight: 700;
   color: #007bff;
+  font-family: 'Poppins', sans-serif;
 }
 
 .filter-bar {
@@ -109,6 +111,10 @@ input:focus, select:focus, textarea:focus {
   flex-wrap: wrap;
   margin-bottom: 20px;
   gap: 10px;
+  background: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .search-location {
@@ -127,19 +133,7 @@ input:focus, select:focus, textarea:focus {
 }
 
 .search-location button {
-  padding: 10px 15px;
-  font-size: 16px;
-  cursor: pointer;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  margin-left: 10px;
-  transition: background-color 0.3s ease;
-}
-
-.search-location button:hover {
-  background-color: #0056b3;
+  display: none;
 }
 
 .location-suggestions {
@@ -177,7 +171,7 @@ input:focus, select:focus, textarea:focus {
   width: 150px;
 }
 
-.filter-bar button {
+.filter-bar .button-filter {
   padding: 10px 15px;
   font-size: 16px;
   cursor: pointer;
@@ -188,7 +182,7 @@ input:focus, select:focus, textarea:focus {
   transition: background-color 0.3s ease;
 }
 
-.filter-bar button:hover {
+.filter-bar .button-filter:hover {
   background-color: #0056b3;
 }
 
@@ -341,9 +335,14 @@ input:focus, select:focus, textarea:focus {
   right: 10px;
   background: none;
   border: none;
-  font-size: 1.5em;
+  font-size: 1.2em;
   cursor: pointer;
   color: #666;
+  padding: 5px;
+}
+
+.listing-form .close-button:hover {
+  color: #333;
 }
 
 /* Loading Spinner */
@@ -376,106 +375,18 @@ input:focus, select:focus, textarea:focus {
   margin-top: 10px;
 }
 
-/* Donor Listing Card */
-.donor-listing-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
+@media (max-width: 768px) {
+  .search-location input {
+    width: 100%;
+  }
 
-.donor-listing-item .listing-details {
-  display: flex;
-  align-items: center;
-}
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-.donor-listing-item .listing-image {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  margin-right: 20px;
-  border-radius: 8px;
-}
-
-.donor-listing-item .listing-actions button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.2em;
-  margin-left: 10px;
-  transition: color 0.3s ease;
-}
-
-.donor-listing-item .listing-actions button:hover {
-  color: #007bff;
-}
-
-.donor-listing-item .listing-actions button:first-child {
-  color: #ffc107;
-}
-
-.donor-listing-item .listing-actions button:first-child:hover {
-  color: #e0a800;
-}
-
-.donor-listing-item .listing-actions button:last-child {
-  color: #dc3545;
-}
-
-.donor-listing-item .listing-actions button:last-child:hover {
-  color: #c82333;
-}
-
-/* Recipient Listing Card */
-.recipient-listing-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid #ddd;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.recipient-listing-item .listing-details {
-  display: flex;
-  align-items: center;
-}
-
-.recipient-listing-item .listing-image {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  margin-right: 20px;
-  border-radius: 8px;
-}
-
-.recipient-listing-item .listing-actions button {
-  background: #007bff;
-  border: none;
-  cursor: pointer;
-  font-size: 1em;
-  padding: 10px 20px;
-  color: white;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
-}
-
-.recipient-listing-item .listing-actions button:hover {
-  background-color: #0056b3;
-}
-
-.recipient-listing-item .listing-actions button.request-sent {
-  background-color: #28a745;
-}
-
-.recipient-listing-item .listing-actions button.request-sent:hover {
-  background-color: #218838;
+  .add-button {
+    width: 100%;
+    border-radius: 4px;
+  }
 }

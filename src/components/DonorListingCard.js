@@ -17,8 +17,8 @@ const DonorListingCard = ({ listing, onEdit, onDelete }) => {
         </div>
       </div>
       <div className="listing-actions">
-        <button onClick={() => onEdit(listing)}><FaEdit /></button>
-        <button onClick={() => onDelete(listing.id)}><FaTrash /></button>
+        <button onClick={() => onEdit(listing)} className="edit-button"><FaEdit /></button>
+        <button onClick={() => onDelete(listing.id)} className="delete-button"><FaTrash /></button>
       </div>
     </li>
   );

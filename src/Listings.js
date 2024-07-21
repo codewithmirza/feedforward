@@ -337,11 +337,11 @@ const Listings = ({ currentRole, setCurrentRole }) => {
 
   return (
     <div className="listings">
-      <h1>{currentRole === 'donor' ? 'Your Listings' : 'Available Items'}</h1>
+      <h1 className="listings-title">{currentRole === 'donor' ? 'Your Listings' : 'Available Items'}</h1>
       {currentRole === 'recipient' && (
         <div className="filter-bar">
           <div className="search-location">
-            <FaMapMarkerAlt />
+            <FaMapMarkerAlt style={{ marginRight: '10px', marginBottom:'10px'}}/>
             <input 
               type="text" 
               placeholder="Enter location" 
@@ -349,7 +349,6 @@ const Listings = ({ currentRole, setCurrentRole }) => {
               onChange={handleLocationInputChange} 
               style={{ width: '300px' }} // Increase the width of the location input field
             />
-            <button onClick={handleLocationSearch}>Search</button>
             {locationSuggestions.length > 0 && (
               <ul className="location-suggestions">
                 {locationSuggestions.map((suggestion, index) => (
@@ -368,7 +367,7 @@ const Listings = ({ currentRole, setCurrentRole }) => {
             min="1"
             max="6371"
           />
-          <button onClick={handleFilter}>Filter</button>
+          <button onClick={handleFilter} className="button-filter">Filter</button>
         </div>
       )}
       {loading ? (
